@@ -28,8 +28,8 @@ PBS = 50 ; %dBm
 % Mu = cell(1,K);    % Lagrange variable for Rate
 % eta = [];   % Lagrange variable for Ith
 % MaxIteration = 200000;
-R_MUE = 1.4005;
-R_FUE =1.25; %FUE Rate requirements
+R_MUE = 2.0;
+R_FUE =5.0; %FUE Rate requirements
 %% Initialize MBS and MUE
 MBS = BaseStation(0 , 0 , PBS); % (0,0) is the location and P_MBS = 50 dBm
 mue = UE(-200, 0);
@@ -92,6 +92,23 @@ if fbsCount>=16, FBS{16} = FBS_Max{13}; end
 textprogressbar(sprintf('calculating outputs:'));
 I_th = calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, NumRealization);
 interf = [];
+for i=1:size(FBS,2)
+    fbs = FBS{i};
+    fbs = fbs.setR_FUE(R_FUE);
+    FBS{i} = fbs;
+end
+
+for i=1:size(FBS,2)
+    fbs = FBS{i};
+    gMF_k = fading_FBS_MUE(fbs, mue, 100);
+    fbs = fbs.setGMF(gMF_k);
+    gF_k = fading_FBS_FUE(fbs,100);
+    fbs = fbs.setGF(gF_k);
+    I_k = Interference_MBS(fbs, MBS, -120, NumRealization);
+    fbs = fbs.setInterf(I_k);
+    FBS{i} = fbs;
+end
+
 for iter=1:MaxIteration
     textprogressbar((iter/MaxIteration)*100);
     eta = MBS.getLagrangeVar();
@@ -100,10 +117,10 @@ for iter=1:MaxIteration
         % Power Allocation
         fbs = FBS{i};
         [lambda ,gamma ,mu] = fbs.getLagrangeVars();
-        gMF_k = fading_FBS_MUE(fbs, mue, 100);
-        fbs = fbs.setGMF(gMF_k);
-        gF_k = fading_FBS_FUE(fbs,100);
-        I_k = Interference_MBS(fbs, MBS, -120, NumRealization);
+        gMF_k = fbs.gmf;% fading_FBS_MUE(fbs, mue, 100);
+%         fbs = fbs.setGMF(gMF_k);
+        gF_k = fbs.gf;%fading_FBS_FUE(fbs,100);
+        I_k = fbs.If;%Interference_MBS(fbs, MBS, -120, NumRealization);
         p = ((1+mu)/log(2))*(lambda+eta*gMF_k)^(-1)-(I_k/gF_k);
         fbs = fbs.setPower(max(p,0.0));
         fbs = fbs.setCapacity(log2(1+fbs.P*gF_k/I_k));
@@ -117,16 +134,16 @@ for iter=1:MaxIteration
     for i=1:size(FBS,2)
         fbs = FBS{i};
         [lambda ,gamma ,mu] = fbs.getLagrangeVars();
-         beta = gss(FBS,i, pmax, pmin, eta, I_th, 1);
-%         lambda = max(lambda + beta * (fbs.P - pmax), 0.0);
-         lambda = max(beta, 0);
-         beta = gss(FBS,i, pmax, pmin, eta, I_th, 3);
-        mu = max(beta, 0); %max(mu+beta*(fbs.R_FUE-fbs.C_FUE), 0.0);
+%          beta = gss(FBS,i, pmax, pmin, eta, I_th, 1);
+        lambda = max(lambda + 0.1 * (fbs.P - pmax), 0.0);
+%          lambda = max(beta, 0);
+%          beta = gss(FBS,i, pmax, pmin, eta, I_th, 3);
+        mu = max(mu+0.01*(fbs.R_FUE-fbs.C_FUE), 0.0);
         fbs = fbs.updateLagrangeVars(lambda, gamma, mu);
         FBS{i} = fbs;
     end
-    beta = gss(FBS,i, pmax, pmin, eta, I_th, 4);
-    eta = max(beta, 0);%max(eta -beta * (I_th - Total_MUE_Interf), 0.0);
+%     beta = gss(FBS,i, pmax, pmin, eta, I_th, 4);
+    eta = max(eta -0.1 * (I_th - Total_MUE_Interf), 0.0);
     MBS = MBS.updateLagrangeVar(eta);
     mue_C = calc_MUE_Capacity(MBS, mue, -120, Total_MUE_Interf,NumRealization);
     mue = mue.setCapacity(mue_C);
@@ -135,14 +152,16 @@ end
 fprintf('total interf = %4.4f\n', 1e11*Total_MUE_Interf);
 fprintf('   Threshold = %4.4f\n', 1e11*I_th);
 cc_mue = mue.C_profile;
-cc_mean = sum(cc_mue(8000:10000))/2000;
+ss = size(cc_mue,2);
+cc_mean = sum(cc_mue(0.8*ss:ss))/(0.2*ss);
 Q.CMUE = cc_mean;
 
 sum_C = 0;
 min_C = inf;
 for i=1:size(FBS,2)
     cc_fue = FBS{i}.C_profile;
-    cc_mean = sum(cc_fue(8000:10000))/2000;
+    ss = size(cc_fue,2);
+    cc_mean = sum(cc_fue(0.8*ss:ss))/(0.2*ss);
     if min_C > cc_mean
         min_C = cc_mean;
     end

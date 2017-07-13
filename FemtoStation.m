@@ -18,9 +18,11 @@ classdef FemtoStation
       C_profile = []
       lambda = 10.0 %lagrange var for Pmax
       gamma = 1.10  %lagrange var for Pmin
-      mu = .10     %lagrange var for required rate
+      mu = 100     %lagrange var for required rate
       gmf
-      R_FUE = 1.25 % FUE required rate
+      gf
+      If
+      R_FUE % FUE required rate
    end
    methods
       function obj = FemtoStation(xPos, yPos, BS, MUE, dFUE)
@@ -49,7 +51,13 @@ classdef FemtoStation
       function obj = setGMF(obj, gmf)
           obj.gmf = gmf;
       end
-      function obj = setR_FUE(R)
+      function obj = setGF(obj, gf)
+          obj.gf = gf;
+      end
+      function obj = setInterf(obj, If)
+          obj.If = If;
+      end
+      function obj = setR_FUE(obj,R)
           obj.R_FUE = R;
       end
       function obj = setPower(obj,power)
