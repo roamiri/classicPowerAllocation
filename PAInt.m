@@ -1,10 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Power Allocation in a femtocell network based on dual decomposition
-% This file is written based on solution in page 2 of June 19-25, 2017
+% This file is written based on solution in page 3 of July 19-23, 2017
 % notes
 % In this optimization problem Pmin is not considered in the constraints.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Q = PA2(fbsCount, NumRealization,MaxIteration, showPlot)
+function Q = PAInt(fbsCount, NumRealization,MaxIteration, showPlot)
 format long;
 %% Initialization
 %clear;
@@ -123,7 +123,7 @@ for iter=1:MaxIteration
 %         fbs = fbs.setGMF(gMF_k);
         gF_k = fbs.gf;%fading_FBS_FUE(fbs,100);
         I_k = fbs.If;%Interference_MBS(fbs, MBS, -120, NumRealization);
-        p = ((1+mu)/log(2))*(lambda+eta*gMF_k)^(-1)-(I_k/gF_k);
+        p = ((1+mu)/log(2))*(eta*gMF_k)^(-1)-(I_k/gF_k);
         fbs = fbs.setPower(max(p,0.0));
         fbs = fbs.setCapacity(log2(1+fbs.P*gF_k/I_k));
         Total_MUE_Interf = Total_MUE_Interf + fbs.P * gMF_k;
@@ -136,7 +136,7 @@ for iter=1:MaxIteration
         fbs = FBS{i};
         [lambda ,gamma ,mu] = fbs.getLagrangeVars();
 %          beta = gss(FBS,i, pmax, pmin, eta, I_th, 1);
-        lambda = max(lambda + (0.1) * (fbs.P - pmax), 0.0);
+%         lambda = max(lambda + (0.1) * (fbs.P - pmax), 0.0);
 %          lambda = max(beta, 0);
 %          beta = gss(FBS,i, pmax, pmin, eta, I_th, 3);
         mu = max(mu+(0.05)*(fbs.R_FUE-fbs.C_FUE), 0.0);
@@ -184,14 +184,16 @@ if showPlot==1
 
     figure;
     hold on;
-    plot(FBS{1}.lambda);
-    plot(FBS{2}.lambda);
+    for i=1:size(FBS,2)
+        plot(FBS{i}.lambda);
+    end
     title('Lambda');
 
     figure;
     hold on;
-    plot(FBS{1}.mu);
-    plot(FBS{2}.mu);
+    for i=1:size(FBS,2)
+        plot(FBS{i}.mu);
+    end
     title('Mu');
 
     figure;

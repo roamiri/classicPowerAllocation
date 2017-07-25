@@ -3,7 +3,8 @@ classdef BaseStation
       X
       Y
       P
-      eta = 1
+      eta = 1e12
+      gBS_MUE
    end
    methods
       function obj = BaseStation(xPos, yPos, transmitPower)
@@ -32,6 +33,9 @@ classdef BaseStation
       
       function obj = updateLagrangeVar(obj,eta)
           obj.eta = [obj.eta eta];
+      end
+      function obj = update_gBS_MUE(obj,value)
+          obj.gBS_MUE = value;
       end
    end
 end

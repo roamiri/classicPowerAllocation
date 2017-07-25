@@ -16,9 +16,9 @@ classdef FemtoStation
       powerProfile = []
       C_FUE
       C_profile = []
-      lambda = 10.0 %lagrange var for Pmax
+      lambda = 1.0 %lagrange var for Pmax
       gamma = 1.10  %lagrange var for Pmin
-      mu = 100     %lagrange var for required rate
+      mu = 10     %lagrange var for required rate
       gmf
       gf
       If

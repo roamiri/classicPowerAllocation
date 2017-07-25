@@ -9,7 +9,7 @@ numFBS = 16;
 final = cell(1,numFBS);
 for i =4:numFBS
     display(i);
-    final{1,i} = PA2(i, 100, 1e4);
+    final{1,i} = PA2(i, 100, 50, 0);
 end
 %%
 for i=4:numFBS
