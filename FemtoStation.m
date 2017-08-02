@@ -23,6 +23,7 @@ classdef FemtoStation
       gf
       If
       R_FUE % FUE required rate
+      DS % Delay sensitive user
    end
    methods
       function obj = FemtoStation(xPos, yPos, BS, MUE, dFUE)

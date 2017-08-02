@@ -1,10 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Power Allocation in a femtocell network based on dual decomposition
-% This file is written based on solution in page 2 of June 19-25, 2017
+% This file is written based on solution in page 1 of Aug 1st, 2017
 % notes
 % In this optimization problem Pmin is not considered in the constraints.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Q = PA2(fbsCount, NumRealization,MaxIteration, showPlot)
+function Q = PASe(fbsCount, NumRealization,MaxIteration, showPlot)
 format long;
 %% Initialization
 %clear;
@@ -29,8 +29,8 @@ PBS = 50 ; %dBm
 % Mu = cell(1,K);    % Lagrange variable for Rate
 % eta = [];   % Lagrange variable for Ith
 % MaxIteration = 200000;
-R_MUE = 2.0;
-R_FUE =5.0; %FUE Rate requirements
+R_MUE = 4.0;
+R_FUE =4.0; %FUE Rate requirements
 %% Initialize MBS and MUE
 MBS = BaseStation(0 , 0 , PBS); % (0,0) is the location and P_MBS = 50 dBm
 mue = UE(-200, 0);
@@ -67,8 +67,17 @@ for i=1:3
         FBS_Max{i+13} = FemtoStation(150+(i-1)*35,280, MBS, mue, 10);
 %     end
 end
+%% Specify if FBSs have Delay Sensitive (DS) or Delay Tolerant (DT) users
+for i=1:size(FBS_Max,2)
+    fbs = FBS_Max{i};
+    if mod(i,2)==1
+        fbs.DS = 1;
+    else
+        fbs.DS = 0;
+    end
+    FBS_Max{i} = fbs;
+end
 %%
-% 
 % fbsCount = K; % notice the K and fbsCount varibales when making a function
 FBS = cell(1,fbsCount);
 
@@ -123,7 +132,12 @@ for iter=1:MaxIteration
 %         fbs = fbs.setGMF(gMF_k);
         gF_k = fbs.gf;%fading_FBS_FUE(fbs,100);
         I_k = fbs.If;%Interference_MBS(fbs, MBS, -120, NumRealization);
-        p = (mu/log(2))*(lambda+eta*gMF_k)^(-1)-(I_k/gF_k);
+        if fbs.DS==1
+            p = (mu/log(2))*(lambda+eta*gMF_k)^(-1)-(I_k/gF_k);
+        else
+            p = (1/log(2))*(lambda+eta*gMF_k)^(-1)-(I_k/gF_k);
+        end
+        
         fbs = fbs.setPower(max(p,0.0));
         fbs = fbs.setCapacity(log2(1+fbs.P*gF_k/I_k));
         Total_MUE_Interf = Total_MUE_Interf + fbs.P * gMF_k;
@@ -139,7 +153,10 @@ for iter=1:MaxIteration
         lambda = max(lambda + (0.1) * (fbs.P - pmax), 0.0);
 %          lambda = max(beta, 0);
 %          beta = gss(FBS,i, pmax, pmin, eta, I_th, 3);
-        mu = max(mu+(0.05)*(fbs.R_FUE-fbs.C_FUE), 0.0);
+        if fbs.DS == 1
+            mu = max(mu+(0.05)*(fbs.R_FUE-fbs.C_FUE), 0.0);
+        end
+        
         fbs = fbs.updateLagrangeVars(lambda, gamma, mu);
         FBS{i} = fbs;
     end
@@ -175,7 +192,9 @@ if showPlot==1
     figure;
     hold on;
     for i=1:size(FBS,2)
+        if FBS{i}.DS==1
         plot(FBS{i}.powerProfile);
+        end
         title('Power profile');
     end
     figure;
@@ -184,10 +203,16 @@ if showPlot==1
 
     figure;
     hold on;
+    plot(FBS{1}.C_profile);
+    plot(FBS{2}.C_profile);
+    title('C_profile');
+
+    figure;
+    hold on;
     plot(FBS{1}.lambda);
     plot(FBS{2}.lambda);
     title('Lambda');
-
+    
     figure;
     hold on;
     plot(FBS{1}.mu);

@@ -4,12 +4,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear;
 clc;
-close all;
+% close all;
 numFBS = 16;
 final = cell(1,numFBS);
 for i =4:numFBS
     display(i);
-    final{1,i} = PA2(i, 100, 50, 0);
+    final{1,i} = PASe(i, 100, 400, 0);
 end
 %%
 for i=4:numFBS
@@ -38,7 +38,7 @@ figure;
 hold on;
 grid on;
 box on;
-plot( ones(4,16)*1.25, '--k' );
+plot( ones(4,16)*2.0, '--k' );
 plot(CMUE, '--*r', 'LineWidth',1,'MarkerSize',10);
 title('Capacity of MUE','FontSize',14, 'FontWeight','bold');
 xlabel('FBS Numbers','FontSize',14, 'FontWeight','bold');
@@ -49,9 +49,10 @@ figure;
 hold on;
 grid on;
 box on;
-plot( ones(4,16)*1.4005, '--k' );
+plot( ones(4,16)*5, '--k' );
 plot(min, '--*r', 'LineWidth',1,'MarkerSize',10);
 title('Minimum Capacity of FUEs','FontSize',14, 'FontWeight','bold');
 xlabel('FBS Numbers','FontSize',14, 'FontWeight','bold');
 ylabel('Capacity(b/s/HZ)','FontSize',14, 'FontWeight','bold');
 xlim([4 16]);
+% ylim([0 7]);
