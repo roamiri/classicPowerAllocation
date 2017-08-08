@@ -1,10 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Power Allocation in a femtocell network based on dual decomposition
-% This file is written based on solution in page 1 of Aug 1st, 2017
+% This file is written based on solution in page 1 of Aug 7th, 2017
 % notes
 % In this optimization problem Pmin is not considered in the constraints.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Q = PASe(fbsCount, NumRealization,MaxIteration, showPlot)
+function Q = PA3(fbsCount, NumRealization,MaxIteration, showPlot)
 format long;
 %% Initialization
 %clear;
@@ -100,7 +100,7 @@ if fbsCount>=16, FBS{16} = FBS_Max{13}; end
 
 %% Main Loop
 textprogressbar(sprintf('calculating outputs:'));
-I_th = calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, 10000);
+I_th = calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, NumRealization);
 interf = [];
 for i=1:size(FBS,2)
     fbs = FBS{i};
