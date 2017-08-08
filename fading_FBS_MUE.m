@@ -1,4 +1,4 @@
-function fading = fading_FBS_MUE(FBS, mue, NumRealization) % output is not in dB
+function [fading, Loss] = fading_FBS_MUE(FBS, mue, NumRealization) % output is not in dB
     % compute power of signal at UE received from BS        
     xx = mue.X;
     yy = mue.Y;
@@ -12,7 +12,8 @@ function fading = fading_FBS_MUE(FBS, mue, NumRealization) % output is not in dB
     d = sqrt((FBS.X-xx).^2+(FBS.Y-yy).^2);
     PL0 = 62.3+32.*log10(d/5);
     PL_FB = PL0 + PLi;
-    l = 10.^((PL_FB-30)/10); %large scale fading
+%     Loss = PL_FB;
+    Loss = 10.^((PL_FB)/10); %large scale fading
 
-    fading = sum(alpha./l)/NumRealization;
+    fading = sum(alpha)/NumRealization;
 end

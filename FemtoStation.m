@@ -18,9 +18,11 @@ classdef FemtoStation
       C_profile = []
       lambda = 1.0 %lagrange var for Pmax
       gamma = 1.10  %lagrange var for Pmin
-      mu = 10     %lagrange var for required rate
+      mu = 0     %lagrange var for required rate
       gmf
+      lmf
       gf
+      lf
       If
       R_FUE % FUE required rate
       DS % Delay sensitive user
@@ -49,11 +51,13 @@ classdef FemtoStation
           obj.mu = [obj.mu mu];
       end
       
-      function obj = setGMF(obj, gmf)
+      function obj = setGMF(obj, gmf, lmf)
           obj.gmf = gmf;
+          obj.lmf = lmf;
       end
-      function obj = setGF(obj, gf)
+      function obj = setGF(obj, gf, lf)
           obj.gf = gf;
+          obj.lf = lf;
       end
       function obj = setInterf(obj, If)
           obj.If = If;
