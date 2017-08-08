@@ -100,7 +100,7 @@ if fbsCount>=16, FBS{16} = FBS_Max{13}; end
 
 %% Main Loop
 textprogressbar(sprintf('calculating outputs:'));
-I_th = calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, NumRealization);
+I_th = calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, 10000);
 interf = [];
 for i=1:size(FBS,2)
     fbs = FBS{i};
