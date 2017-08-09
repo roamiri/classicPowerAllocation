@@ -3,7 +3,7 @@ classdef BaseStation
       X
       Y
       P
-      eta = 1e1
+      eta = 1e6
       gBS_MUE
    end
    methods

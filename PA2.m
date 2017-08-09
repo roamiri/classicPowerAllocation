@@ -18,6 +18,7 @@ pmin = 10^((Pmin-30)/10);
 
 Pmax = 25; %dBm
 pmax = 10^((Pmax-30)/10);
+ppmax = pmax/(2e7);
 
 PBS = 50 ; %dBm
 % Ith = 1; % MUE maximum interference threshold which represents its desired QoS
@@ -29,8 +30,8 @@ PBS = 50 ; %dBm
 % Mu = cell(1,K);    % Lagrange variable for Rate
 % eta = [];   % Lagrange variable for Ith
 % MaxIteration = 200000;
-R_MUE = 2.0;
-R_FUE =5.0; %FUE Rate requirements
+R_MUE = 8.0;
+R_FUE =4.0; %FUE Rate requirements
 %% Initialize MBS and MUE
 MBS = BaseStation(0 , 0 , PBS); % (0,0) is the location and P_MBS = 50 dBm
 mue = UE(-200, 0);
@@ -91,7 +92,7 @@ if fbsCount>=16, FBS{16} = FBS_Max{13}; end
 
 %% Main Loop
 textprogressbar(sprintf('calculating outputs:'));
-I_th = calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, NumRealization);
+I_th = 1e6*calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, NumRealization);
 interf = [];
 for i=1:size(FBS,2)
     fbs = FBS{i};
@@ -101,10 +102,10 @@ end
 
 for i=1:size(FBS,2)
     fbs = FBS{i};
-    gMF_k = fading_FBS_MUE(fbs, mue, 100);
-    fbs = fbs.setGMF(gMF_k);
-    gF_k = fading_FBS_FUE(fbs,100);
-    fbs = fbs.setGF(gF_k);
+    [gMF_k, lMF_k] = fading_FBS_MUE(fbs, mue, 100);
+    fbs = fbs.setGMF(gMF_k, lMF_k);
+    [gF_k, lF_k] = fading_FBS_FUE(fbs,100);
+    fbs = fbs.setGF(gF_k, lF_k);
     I_k = Interference_MBS(fbs, MBS, -120, NumRealization);
     fbs = fbs.setInterf(I_k);
     FBS{i} = fbs;
@@ -123,7 +124,7 @@ for iter=1:MaxIteration
 %         fbs = fbs.setGMF(gMF_k);
         gF_k = fbs.gf;%fading_FBS_FUE(fbs,100);
         I_k = fbs.If;%Interference_MBS(fbs, MBS, -120, NumRealization);
-        p = (mu/log(2))*(lambda+eta*gMF_k)^(-1)-(I_k/gF_k);
+        p = (1+mu/log(2))*(lambda+eta*gMF_k)^(-1)-(I_k/gF_k);
         fbs = fbs.setPower(max(p,0.0));
         fbs = fbs.setCapacity(log2(1+fbs.P*gF_k/I_k));
         Total_MUE_Interf = Total_MUE_Interf + fbs.P * gMF_k;
@@ -136,10 +137,10 @@ for iter=1:MaxIteration
         fbs = FBS{i};
         [lambda ,gamma ,mu] = fbs.getLagrangeVars();
 %          beta = gss(FBS,i, pmax, pmin, eta, I_th, 1);
-        lambda = max(lambda + (0.1) * (fbs.P - pmax), 0.0);
+        lambda = max(lambda + (0.3) * (fbs.P - ppmax), 0.0);
 %          lambda = max(beta, 0);
 %          beta = gss(FBS,i, pmax, pmin, eta, I_th, 3);
-        mu = max(mu+(0.05)*(fbs.R_FUE-fbs.C_FUE), 0.0);
+        mu = max(mu+(0.005)*(fbs.R_FUE-fbs.C_FUE), 0.0);
         fbs = fbs.updateLagrangeVars(lambda, gamma, mu);
         FBS{i} = fbs;
     end
@@ -150,8 +151,8 @@ for iter=1:MaxIteration
     mue = mue.setCapacity(mue_C);
 end
 
-fprintf('total interf = %4.4f\n', 1e11*Total_MUE_Interf);
-fprintf('   Threshold = %4.4f\n', 1e11*I_th);
+fprintf('total interf = %4.4f\n', 1e4*Total_MUE_Interf);
+fprintf('   Threshold = %4.4f\n', 1e4*I_th);
 cc_mue = mue.C_profile;
 ss = size(cc_mue,2);
 cc_mean = sum(cc_mue(0.8*ss:ss))/(0.2*ss);

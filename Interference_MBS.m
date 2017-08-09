@@ -10,6 +10,6 @@ function Interference = Interference_MBS(FBS, BS, sigma2, NumRealization) % inpu
     PL0 = 62.3+32.*log10(d/5);
     PL_FB = PL0 + PLi;
     pbs = 10.^((BS.P-PL_FB-30)/10);
-
+%     pbs = 10.^((BS.P-30)/10);
     Interference = sum(pbs.*hbs+sigma)/NumRealization;
 end

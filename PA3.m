@@ -18,7 +18,7 @@ pmin = 10^((Pmin-30)/10);
 
 Pmax = 25; %dBm
 pmax = 10^((Pmax-30)/10);
-
+ppmax = pmax/(2e7);
 PBS = 50 ; %dBm
 % Ith = 1; % MUE maximum interference threshold which represents its desired QoS
 % R = 1; % FUE minimum required rate which represents QoS
@@ -100,7 +100,7 @@ if fbsCount>=16, FBS{16} = FBS_Max{13}; end
 
 %% Main Loop
 textprogressbar(sprintf('calculating outputs:'));
-I_th = 1e6* calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, NumRealization);
+I_th = 1e6 * calc_MUE_Interf_thresh(MBS, mue, R_MUE, -120, NumRealization);
 interf = [];
 for i=1:size(FBS,2)
     fbs = FBS{i};
@@ -150,25 +150,25 @@ for iter=1:MaxIteration
         fbs = FBS{i};
         [lambda ,gamma ,mu] = fbs.getLagrangeVars();
 %          beta = gss(FBS,i, pmax, pmin, eta, I_th, 1);
-        lambda = max(lambda + (0.01) * (fbs.P - pmax/fbs.lf), 0.0);
+        lambda = max(lambda + (0.3) * (fbs.P - ppmax), 0.0);
 %          lambda = max(beta, 0);
 %          beta = gss(FBS,i, pmax, pmin, eta, I_th, 3);
         if fbs.DS == 1
-            mu = max(mu+(0.2)*(fbs.R_FUE-fbs.C_FUE), 0.0);
+            mu = max(mu+(0.002)*(fbs.R_FUE-fbs.C_FUE), 0.0);
         end
         
         fbs = fbs.updateLagrangeVars(lambda, gamma, mu);
         FBS{i} = fbs;
     end
 %     beta = gss(FBS,i, pmax, pmin, eta, I_th, 4);
-    eta = max(eta -0.28 * (I_th - Total_MUE_Interf), 0.0);
+    eta = max(eta -0.6 * (I_th - Total_MUE_Interf), 0.0);
     MBS = MBS.updateLagrangeVar(eta);
     mue_C = calc_MUE_Capacity(MBS, mue, -120, Total_MUE_Interf,NumRealization);
     mue = mue.setCapacity(mue_C);
 end
 
-fprintf('Total Interf = %4.4f\n', 1e6*Total_MUE_Interf);
-fprintf('   Threshold = %4.4f\n', 1e6*I_th);
+fprintf('Total Interf = %4.4f\n', 1e2*Total_MUE_Interf);
+fprintf('   Threshold = %4.4f\n', 1e2*I_th);
 cc_mue = mue.C_profile;
 ss = size(cc_mue,2);
 cc_mean = sum(cc_mue(0.8*ss:ss))/(0.2*ss);
@@ -218,12 +218,12 @@ if showPlot==1
     
     figure;
     hold on;
-    for i=1:size(FBS,2)
-        if FBS{i}.DS ==1
+%     for i=1:size(FBS,2)
+%         if FBS{i}.DS ==1
             plot(FBS{1}.mu);
-        end
+%         end
     %     plot(FBS{2}.mu);
-    end
+%     end
     title('Mu');
     
 
